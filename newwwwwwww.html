@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Attendance Dashboard</title>
+<style>
+  :root{
+    --ink:#1c2127;
+    --ink-light:#2c333d;
+    --accent:#3e6b78;
+    --accent-soft:#e8eef0;
+    --bg:#eef0f3;
+    --card:#ffffff;
+    --border:#dde1e6;
+    --text:#1c2127;
+    --muted:#6b7280;
+    --excellent:#3a6b4f;
+    --good:#3e6b78;
+    --average:#a8791f;
+    --poor:#9c3b34;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    font-family:'Segoe UI',Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    background:var(--ink);
+    color:#fff;
+    padding:14px 32px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:10;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .topbar .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  .topbar .brand-mark{
+    width:36px;height:36px;
+    background:var(--accent);
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    font-size:0.9rem;
+  }
+
+  .topbar h1{
+    font-size:1.05rem;
+    font-weight:600;
+  }
+
+  .topbar .tagline{
+    font-size:0.75rem;
+    color:#a9b0ba;
+  }
+
+  .topbar .date{
+    font-size:0.8rem;
+    color:#a9b0ba;
+  }
+
+  /* ---------- Layout shell ---------- */
+  .shell{
+    max-width:1240px;
+    margin:0 auto;
+    padding:28px 24px 60px;
+  }
+
+  /* ---------- Stats row ---------- */
+  .stats-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:24px;
+  }
+
+  .stat-tile{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-left:4px solid var(--accent);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+
+  .stat-tile .stat-label{
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--muted);
+    font-weight:600;
+  }
+
+  .stat-tile .stat-value{
+    font-size:1.6rem;
+    font-weight:700;
+    color:var(--ink);
+    margin-top:4px;
+  }
+
+  /* ---------- Two column dashboard grid ---------- */
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:20px;
+    align-items:start;
+  }
+
+  .panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+  }
+
+  .panel-header{
+    padding:16px 20px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .panel-header h2{
+    font-size:0.95rem;
+    color:var(--ink);
+  }
+
+  .panel-header .eyebrow{
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    color:var(--accent);
+    font-weight:700;
+  }
+
+  .panel-body{
+    padding:20px;
+  }
+
+  /* Sticky form sidebar */
+  .form-panel{
+    position:sticky;
+    top:76px;
+  }
+
+  form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+
+  .field label{
+    font-size:0.75rem;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+  }
+
+  .field input{
+    padding:9px 11px;
+    border:1px solid var(--border);
+    border-radius:6px;
+    font-size:0.9rem;
+    color:var(--text);
+    background:#fbfbfc;
+    transition:border-color .15s, box-shadow .15s;
+  }
+
+  .field input:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+
+  .error-text{
+    font-size:0.72rem;
+    color:var(--poor);
+    min-height:13px;
+  }
+
+  #formMessage{
+    font-size:0.8rem;
+    min-height:16px;
+  }
+
+  .form-actions{
+    display:flex;
+    gap:10px;
+    margin-top:2px;
+  }
+
+  button{
+    cursor:pointer;
+    border:none;
+    border-radius:6px;
+    padding:10px 18px;
+    font-size:0.85rem;
+    font-weight:600;
+    transition:transform .1s, background .15s;
+  }
+
+  button:active{transform:scale(0.97);}
+
+  #submitBtn{
+    background:var(--accent);
+    color:#fff;
+    flex:1;
+  }
+  #submitBtn:hover{background:#325a65;}
+
+  #resetBtn{
+    background:#eef1f4;
+    color:var(--text);
+  }
+  #resetBtn:hover{background:#e2e6eb;}
+
+  /* Table panel */
+  .table-scroll{
+    overflow-x:auto;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:0.87rem;
+  }
+
+  thead th{
+    text-align:left;
+    background:#f7f8fa;
+    color:var(--muted);
+    padding:11px 16px;
+    font-weight:600;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+
+  tbody td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--border);
+  }
+
+  tbody tr:hover{background:#fafbfc;}
+  tbody tr:last-child td{border-bottom:none;}
+
+  .empty-row td{
+    text-align:center;
+    color:var(--muted);
+    padding:36px;
+    font-style:italic;
+  }
+
+  .status-badge{
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:0.72rem;
+    font-weight:700;
+    color:#fff;
+    letter-spacing:0.2px;
+  }
+
+  .status-Excellent{background:var(--excellent);}
+  .status-Good{background:var(--good);}
+  .status-Average{background:var(--average);}
+  .status-Poor{background:var(--poor);}
+
+  .delete-btn{
+    background:transparent;
+    color:var(--poor);
+    padding:4px 10px;
+    font-size:0.72rem;
+    border:1px solid var(--poor);
+    border-radius:5px;
+  }
+  .delete-btn:hover{background:var(--poor);color:#fff;}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:900px){
+    .dashboard-grid{grid-template-columns:1fr;}
+    .form-panel{position:static;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+  }
+
+  @media (max-width:600px){
+    .topbar{padding:14px 18px;}
+    .shell{padding:20px 14px 50px;}
+    .stats-row{grid-template-columns:1fr 1fr;gap:10px;}
+    .stat-tile{padding:12px 14px;}
+    .stat-tile .stat-value{font-size:1.3rem;}
+
+    table, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tbody tr{
+      margin-bottom:12px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:8px 14px;
+    }
+    tbody td{
+      border:none;
+      padding:6px 0;
+      display:flex;
+      justify-content:space-between;
+    }
+    tbody td::before{
+      content:attr(data-label);
+      font-weight:600;
+      color:var(--muted);
+      font-size:0.72rem;
+      text-transform:uppercase;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">BC</div>
+    <div>
+      <h1>Brightline Corp</h1>
+      <div class="tagline">HR Attendance Console</div>
+    </div>
+  </div>
+  <div class="date" id="topDate"></div>
+</div>
+
+<div class="shell">
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-tile">
+      <div class="stat-label">Total Records</div>
+      <div class="stat-value" id="statTotal">0</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Average Attendance</div>
+      <div class="stat-value" id="statAvg">--</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Excellent / Good</div>
+      <div class="stat-value" id="statGood">0</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">Average / Poor</div>
+      <div class="stat-value" id="statPoor">0</div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+
+    <!-- Left: sticky form panel -->
+    <section class="panel form-panel">
+      <div class="panel-header">
+        <h2>Add Attendance Record</h2>
+        <span class="eyebrow">New Entry</span>
+      </div>
+      <div class="panel-body">
+        <form id="attendanceForm" novalidate>
+          <div class="field">
+            <label for="empId">Employee ID</label>
+            <input type="text" id="empId" placeholder="e.g. 101" required>
+            <div class="error-text" id="err-empId"></div>
+          </div>
+
+          <div class="field">
+            <label for="empName">Employee Name</label>
+            <input type="text" id="empName" placeholder="e.g. Rahul" required>
+            <div class="error-text" id="err-empName"></div>
+          </div>
+
+          <div class="field">
+            <label for="department">Department</label>
+            <input type="text" id="department" placeholder="e.g. Sales" required>
+            <div class="error-text" id="err-department"></div>
+          </div>
+
+          <div class="field">
+            <label for="workingDays">Working Days</label>
+            <input type="number" id="workingDays" min="1" placeholder="e.g. 24" required>
+            <div class="error-text" id="err-workingDays"></div>
+          </div>
+
+          <div class="field">
+            <label for="presentDays">Present Days</label>
+            <input type="number" id="presentDays" min="0" placeholder="e.g. 22" required>
+            <div class="error-text" id="err-presentDays"></div>
+          </div>
+
+          <div class="field">
+            <label for="leaveDays">Leave Days</label>
+            <input type="number" id="leaveDays" min="0" placeholder="e.g. 2" required>
+            <div class="error-text" id="err-leaveDays"></div>
+          </div>
+
+          <div id="formMessage"></div>
+
+          <div class="form-actions">
+            <button type="button" id="resetBtn">Clear</button>
+            <button type="submit" id="submitBtn">Submit</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Right: table panel -->
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Attendance Report</h2>
+        <span class="eyebrow" id="rowCountLabel">0 Records</span>
+      </div>
+      <div class="panel-body table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Attendance %</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="reportBody">
+            <tr class="empty-row">
+              <td colspan="6">No attendance records yet. Add one on the left to get started.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('attendanceForm');
+  const reportBody = document.getElementById('reportBody');
+  const formMessage = document.getElementById('formMessage');
+  const rowCountLabel = document.getElementById('rowCountLabel');
+
+  const statTotal = document.getElementById('statTotal');
+  const statAvg = document.getElementById('statAvg');
+  const statGood = document.getElementById('statGood');
+  const statPoor = document.getElementById('statPoor');
+
+  const fields = ['empId','empName','department','workingDays','presentDays','leaveDays'];
+  const records = [];
+
+  document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-US', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+
+  function clearErrors(){
+    fields.forEach(f => document.getElementById('err-' + f).textContent = '');
+    formMessage.textContent = '';
+    formMessage.style.color = '';
+  }
+
+  function getStatus(pct){
+    if(pct >= 90) return 'Excellent';
+    if(pct >= 75) return 'Good';
+    if(pct >= 50) return 'Average';
+    return 'Poor';
+  }
+
+  function removeEmptyRow(){
+    const emptyRow = reportBody.querySelector('.empty-row');
+    if(emptyRow) emptyRow.remove();
+  }
+
+  function updateStats(){
+    statTotal.textContent = records.length;
+
+    if(records.length === 0){
+      statAvg.textContent = '--';
+    } else {
+      const avg = records.reduce((sum, r) => sum + r.pct, 0) / records.length;
+      statAvg.textContent = Math.round(avg) + '%';
+    }
+
+    const goodCount = records.filter(r => r.status === 'Excellent' || r.status === 'Good').length;
+    const poorCount = records.filter(r => r.status === 'Average' || r.status === 'Poor').length;
+    statGood.textContent = goodCount;
+    statPoor.textContent = poorCount;
+
+    rowCountLabel.textContent = records.length + (records.length === 1 ? ' Record' : ' Records');
+  }
+
+  function addRow(data){
+    removeEmptyRow();
+    records.push(data);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="ID">${data.id}</td>
+      <td data-label="Name">${data.name}</td>
+      <td data-label="Department">${data.dept}</td>
+      <td data-label="Attendance %">${data.pct}%</td>
+      <td data-label="Status"><span class="status-badge status-${data.status}">${data.status}</span></td>
+      <td data-label="Action"><button type="button" class="delete-btn">Remove</button></td>
+    `;
+    tr.querySelector('.delete-btn').addEventListener('click', () => {
+      const idx = records.indexOf(data);
+      if(idx > -1) records.splice(idx, 1);
+      tr.remove();
+      if(reportBody.children.length === 0){
+        reportBody.innerHTML = '<tr class="empty-row"><td colspan="6">No attendance records yet. Add one on the left to get started.</td></tr>';
+      }
+      updateStats();
+    });
+    reportBody.appendChild(tr);
+    updateStats();
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    clearErrors();
+
+    const empId = document.getElementById('empId').value.trim();
+    const empName = document.getElementById('empName').value.trim();
+    const department = document.getElementById('department').value.trim();
+    const workingDays = Number(document.getElementById('workingDays').value);
+    const presentDays = Number(document.getElementById('presentDays').value);
+    const leaveDays = Number(document.getElementById('leaveDays').value);
+
+    let hasError = false;
+
+    if(!empId){ document.getElementById('err-empId').textContent = 'Required'; hasError = true; }
+    if(!empName){ document.getElementById('err-empName').textContent = 'Required'; hasError = true; }
+    if(!department){ document.getElementById('err-department').textContent = 'Required'; hasError = true; }
+
+    if(!document.getElementById('workingDays').value || workingDays <= 0){
+      document.getElementById('err-workingDays').textContent = 'Enter a valid number';
+      hasError = true;
+    }
+    if(document.getElementById('presentDays').value === ''){
+      document.getElementById('err-presentDays').textContent = 'Required';
+      hasError = true;
+    }
+    if(document.getElementById('leaveDays').value === ''){
+      document.getElementById('err-leaveDays').textContent = 'Required';
+      hasError = true;
+    }
+
+    if(!hasError && presentDays > workingDays){
+      document.getElementById('err-presentDays').textContent = 'Cannot exceed Working Days';
+      hasError = true;
+    }
+    if(!hasError && leaveDays > workingDays){
+      document.getElementById('err-leaveDays').textContent = 'Cannot exceed Working Days';
+      hasError = true;
+    }
+
+    if(hasError){
+      formMessage.textContent = 'Please fix the highlighted fields.';
+      formMessage.style.color = 'var(--poor)';
+      return;
+    }
+
+    const pct = Math.round((presentDays / workingDays) * 100);
+    const status = getStatus(pct);
+
+    addRow({ id: empId, name: empName, dept: department, pct: pct, status: status });
+
+    formMessage.textContent = 'Attendance record added successfully.';
+    formMessage.style.color = 'var(--excellent)';
+    form.reset();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    form.reset();
+    clearErrors();
+  });
+</script>
+
+</body>
+</html>
